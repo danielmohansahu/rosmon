@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- machine tag definition -->
+  <machine name="otheruser"
+           address="localhost"
+           default="never"
+           env-loader="/opt/ros/$(env ROS_DISTRO)/env.sh" 
+           user="robot"/>
+
+  <!-- local "talker" node -->
+  <node name="talker" 
+        pkg="rostopic" 
+        type="rostopic" 
+        args="pub /test/topic std_msgs/String hello -r 1.0" 
+        output="screen"/>
+
+  <!-- remote "listener" node -->
+  <node machine="otheruser" 
+        name="listener" 
+        pkg="rostopic" 
+        type="rostopic" 
+        args="echo /test/topic" 
+        output="screen" />
+
+</launch>
