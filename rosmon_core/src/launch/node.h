@@ -38,6 +38,8 @@ public:
 
 	void setWorkingDirectory(const std::string& workingDirectory);
 
+	void setMachine(const std::string& machine);
+
 	void setClearParams(bool on);
 
 	void setStopTimeout(double timeout);
@@ -54,6 +56,9 @@ public:
 
 	std::string type() const
 	{ return m_type; }
+
+	std::string machine() const
+	{ return m_machine; }
 
 	std::string executable() const
 	{ return m_executable; }
@@ -109,6 +114,8 @@ private:
 	std::string m_executable;
 
 	std::string m_namespace;
+
+	std::string m_machine;
 
 	std::map<std::string, std::string> m_remappings;
 	std::vector<std::string> m_extraArgs;

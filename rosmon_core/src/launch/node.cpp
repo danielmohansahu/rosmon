@@ -35,6 +35,7 @@ Node::Node(std::string name, std::string package, std::string type)
  , m_respawn(false)
  , m_respawnDelay(1.0)
 
+ , m_machine()
  , m_required(false)
  , m_coredumpsEnabled(true)
  , m_clearParams(false)
@@ -88,6 +89,11 @@ void Node::setExtraEnvironment(const std::map<std::string, std::string>& env)
 void Node::setRequired(bool required)
 {
 	m_required = required;
+}
+
+void Node::setMachine(const std::string& machine)
+{
+	m_machine = machine;
 }
 
 void Node::setRespawn(bool respawn)

@@ -245,6 +245,8 @@ void LaunchConfig::parse(TiXmlElement* element, ParseContext* ctx, bool onlyArgu
 
 		if(e->ValueStr() == "node")
 			parseNode(e, *ctx);
+		else if(e->ValueStr() == "machine")
+			parseMachine(e, *ctx);
 		else if(e->ValueStr() == "param")
 			parseParam(e, *ctx);
 		else if(e->ValueStr() == "rosparam")
@@ -276,6 +278,7 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 	const char* type = element->Attribute("type");
 	const char* args = element->Attribute("args");
 	const char* ns = element->Attribute("ns");
+	const char* machine = element->Attribute("machine");
 	const char* respawn = element->Attribute("respawn");
 	const char* respawnDelay = element->Attribute("respawn_delay");
 	const char* required = element->Attribute("required");
@@ -401,6 +404,21 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 		}
 	}
 
+	if(machine)
+	{
+		// check if machine was defined:
+		auto it = std::find_if(m_machines.begin(), m_machines.end(), [&](const Machine::Ptr& m) {
+			return m->name() == machine;
+		});
+
+		if(it == m_machines.end())
+		{
+			throw ctx.error("machine name '{}' is not defined", machine);
+		}
+
+		node->setMachine(ctx.evaluate(machine));
+	}
+
 	if(required && ctx.parseBool(required, element->Row()))
 	{
 		node->setRequired(true);
@@ -447,6 +465,70 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 	node->setRemappings(ctx.remappings());
 
 	m_nodes.push_back(node);
+}
+
+void LaunchConfig::parseMachine(TiXmlElement* element, ParseContext ctx)
+{
+	const char* name = element->Attribute("name");
+	const char* address = element->Attribute("address");
+	const char* env_loader = element->Attribute("env-loader");
+	const char* username = element->Attribute("username");
+	const char* timeout = element->Attribute("timeout");
+
+	// unsupported / deprecated parameters
+	const char* password = element->Attribute("passwhat");
+	const char* default_ = element->Attribute("default");
+	const char* ros_root = element->Attribute("ros-root");
+	const char* ros_package_path = element->Attribute("ros-package-path");
+
+	// check input parameters
+	if(!name || !address || !env_loader)
+	{
+		throw ctx.error("name, address, env-loader are mandatory for machine elements! Machine tag: {}", name);
+	}
+
+	if(password)
+	{
+		throw ctx.error("<password> tag not supported for machine elements, use ssh-keys instead. Machine {}", name);
+	}
+
+	if(default_ && ctx.evaluate(default_) != "never")
+	{
+		throw ctx.error("<default> tags other than 'never' are unsupported. Machine tag: {}", name);
+	}
+
+	if(ros_root || ros_package_path)
+	{
+		throw ctx.error("ros-root, ros-package-path are not supported for machine elements; please use env-loader instead.");
+	}
+
+	Machine::Ptr machine = std::make_shared<Machine>(
+		ctx.evaluate(name), ctx.evaluate(address), ctx.evaluate(env_loader)
+	);
+
+	// Check name uniqueness
+	{
+		auto it = std::find_if(m_machines.begin(), m_machines.end(), [&](const Machine::Ptr& m) {
+			return m->name() == machine->name();
+		});
+
+		if(it != m_machines.end())
+		{
+			throw ctx.error("machine name '{}' is not unique", machine->name());
+		}
+	}
+
+	if(username)
+	{
+		machine->setUsername(ctx.evaluate(username));
+	}
+
+	if(timeout)
+	{
+		machine->setTimeout(ctx.evaluate(timeout));
+	}
+
+	m_machines.push_back(machine);
 }
 
 static XmlRpc::XmlRpcValue autoXmlRpcValue(const std::string& fullValue)

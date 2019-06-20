@@ -5,6 +5,7 @@
 #define ROSMON_LAUNCH_LAUNCH_CONFIG_H
 
 #include "node.h"
+#include "machine.h"
 
 #include <map>
 #include <vector>
@@ -178,6 +179,9 @@ public:
 	inline const std::vector<Node::Ptr>& nodes() const
 	{ return m_nodes; }
 
+	inline const std::vector<Machine::Ptr>& machines() const
+	{ return m_machines; }
+
 	inline const std::map<std::string, std::string>& arguments() const
 	{ return m_rootContext.arguments(); }
 
@@ -199,6 +203,7 @@ private:
 
 	void parse(TiXmlElement* element, ParseContext* ctx, bool onlyArguments = false);
 	void parseNode(TiXmlElement* element, ParseContext ctx);
+	void parseMachine(TiXmlElement* element, ParseContext ctx);
 	void parseParam(TiXmlElement* element, ParseContext ctx, ParamContext paramContext = PARAM_GENERAL);
 	void parseROSParam(TiXmlElement* element, ParseContext ctx);
 	void parseInclude(TiXmlElement* element, ParseContext ctx);
@@ -213,6 +218,7 @@ private:
 	ParseContext m_rootContext;
 
 	std::vector<Node::Ptr> m_nodes;
+	std::vector<Machine::Ptr> m_machines;
 
 	using ParameterList = std::map<std::string, XmlRpc::XmlRpcValue>;
 	using ParameterFuture = std::future<XmlRpc::XmlRpcValue>;

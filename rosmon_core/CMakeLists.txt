@@ -54,6 +54,7 @@ endif()
 
 add_library(rosmon_launch_config
 	src/launch/node.cpp
+	src/launch/machine.cpp
 	src/launch/launch_config.cpp
 	src/launch/substitution.cpp
 	src/launch/substitution_python.cpp
