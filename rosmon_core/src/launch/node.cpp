@@ -35,7 +35,7 @@ Node::Node(std::string name, std::string package, std::string type)
  , m_respawn(false)
  , m_respawnDelay(1.0)
 
- , m_machine()
+ , m_machine(NULL)
  , m_required(false)
  , m_coredumpsEnabled(true)
  , m_clearParams(false)
@@ -91,7 +91,7 @@ void Node::setRequired(bool required)
 	m_required = required;
 }
 
-void Node::setMachine(const std::string& machine)
+void Node::setMachine(std::shared_ptr<Machine> machine)
 {
 	m_machine = machine;
 }

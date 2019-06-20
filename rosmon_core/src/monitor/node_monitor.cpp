@@ -139,8 +139,32 @@ std::vector<std::string> NodeMonitor::composeCommand() const
 		);
 	}
 
-	// Start with the launch prefix...
-	std::vector<std::string> cmd = m_launchNode->launchPrefix();
+	std::vector<std::string> cmd;
+	std::vector<std::string> launchPrefix = m_launchNode->launchPrefix();
+	launch::Machine::Ptr machine = m_launchNode->machine();
+	if(machine)
+	{
+		// compose our ssh command
+		cmd.push_back("ssh");
+
+		// username @ host
+		if (!machine->username().empty()) {
+			cmd.push_back(machine->username() + "@" + machine->address());
+		} else {
+			cmd.push_back(machine->address());
+		}
+
+		// environment to source
+		cmd.push_back(machine->env_loader());
+
+		// append the launch prefix
+		cmd.insert(cmd.end(), launchPrefix.begin(), launchPrefix.end());
+	} 
+	else 
+	{
+		// Start with the launch prefix...
+		cmd = launchPrefix;
+	}
 
 	// add executable file
 	cmd.push_back(m_launchNode->executable());
@@ -239,7 +263,7 @@ void NodeMonitor::start()
 
 		args.push_back(nullptr);
 	}
-
+ 
 	// Fork!
 	int pid = fork();
 	if(pid < 0)
@@ -249,13 +273,15 @@ void NodeMonitor::start()
 	{
 		close(master);
 
+		// introspection information
+		std::stringstream full_command;
+		for(const auto& part : args.data())
+			full_command << part << " ";
+		fmt::print(stderr, "Executing '{}'\n", full_command.str());
+
 		if(execvp("rosrun", args.data()) != 0)
 		{
-			std::stringstream ss;
-			for(const auto& part : cmd)
-				ss << part << " ";
-
-			fmt::print(stderr, "Could not execute '{}': {}\n", ss.str(), strerror(errno));
+			fmt::print(stderr, "Could not execute '{}': {}\n", full_command.str(), strerror(errno));
 		}
 
 		// We should not end up here...

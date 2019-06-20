@@ -416,7 +416,7 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 			throw ctx.error("machine name '{}' is not defined", machine);
 		}
 
-		node->setMachine(ctx.evaluate(machine));
+		node->setMachine(*it);
 	}
 
 	if(required && ctx.parseBool(required, element->Row()))
@@ -472,7 +472,7 @@ void LaunchConfig::parseMachine(TiXmlElement* element, ParseContext ctx)
 	const char* name = element->Attribute("name");
 	const char* address = element->Attribute("address");
 	const char* env_loader = element->Attribute("env-loader");
-	const char* username = element->Attribute("username");
+	const char* username = element->Attribute("user");
 	const char* timeout = element->Attribute("timeout");
 
 	// unsupported / deprecated parameters

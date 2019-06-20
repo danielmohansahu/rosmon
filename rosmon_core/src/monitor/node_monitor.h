@@ -5,6 +5,7 @@
 #define ROSMON_MONITOR_NODE_MONITOR_H
 
 #include "../launch/node.h"
+#include "../launch/machine.h"
 #include "../fd_watcher.h"
 
 #include <ros/node_handle.h>

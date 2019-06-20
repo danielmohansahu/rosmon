@@ -11,6 +11,8 @@
 
 #include <ros/time.h>
 
+#include "machine.h"
+
 namespace rosmon
 {
 
@@ -38,7 +40,7 @@ public:
 
 	void setWorkingDirectory(const std::string& workingDirectory);
 
-	void setMachine(const std::string& machine);
+	void setMachine(Machine::Ptr machine);
 
 	void setClearParams(bool on);
 
@@ -57,7 +59,7 @@ public:
 	std::string type() const
 	{ return m_type; }
 
-	std::string machine() const
+	Machine::Ptr machine() const
 	{ return m_machine; }
 
 	std::string executable() const
@@ -115,7 +117,7 @@ private:
 
 	std::string m_namespace;
 
-	std::string m_machine;
+	Machine::Ptr m_machine;
 
 	std::map<std::string, std::string> m_remappings;
 	std::vector<std::string> m_extraArgs;
