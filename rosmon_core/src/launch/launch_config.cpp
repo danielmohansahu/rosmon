@@ -287,9 +287,8 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 	const char* cwd = element->Attribute("cwd");
 	const char* clearParams = element->Attribute("clear_params");
 	const char* stopTimeout = element->Attribute("rosmon-stop-timeout");
-    const char* memoryLimit = element->Attribute("rosmon-memory-limit");
-    const char* cpuLimit = element->Attribute("rosmon-cpu-limit");
-
+        const char* memoryLimit = element->Attribute("rosmon-memory-limit");
+        const char* cpuLimit = element->Attribute("rosmon-cpu-limit");
 
 	if(!name || !pkg || !type)
 	{
@@ -406,14 +405,15 @@ void LaunchConfig::parseNode(TiXmlElement* element, ParseContext ctx)
 
 	if(machine)
 	{
+
 		// check if machine was defined:
 		auto it = std::find_if(m_machines.begin(), m_machines.end(), [&](const Machine::Ptr& m) {
-			return m->name() == machine;
+			return m->name() == ctx.evaluate(machine);
 		});
 
 		if(it == m_machines.end())
 		{
-			throw ctx.error("machine name '{}' is not defined", machine);
+			throw ctx.error("machine name '{}' is not defined", ctx.evaluate(machine));
 		}
 
 		node->setMachine(*it);
@@ -484,8 +484,17 @@ void LaunchConfig::parseMachine(TiXmlElement* element, ParseContext ctx)
 	// check input parameters
 	if(!name || !address || !env_loader)
 	{
-		throw ctx.error("name, address, env-loader are mandatory for machine elements! Machine tag: {}", name);
-	}
+                // special case of localhost is ignored:
+                if (ctx.evaluate(name) == "localhost") 
+                {
+                        if (!address) address="localhost";
+                        if (!env_loader) env_loader="";
+                } 
+                else 
+                {
+		        throw ctx.error("name, address, env-loader are mandatory for machine elements! Machine tag: {}", name);
+	        }
+        }
 
 	if(password)
 	{
@@ -507,7 +516,7 @@ void LaunchConfig::parseMachine(TiXmlElement* element, ParseContext ctx)
 	);
 
 	// Check name uniqueness
-	{
+	if (ctx.evaluate(name) != "localhost") {
 		auto it = std::find_if(m_machines.begin(), m_machines.end(), [&](const Machine::Ptr& m) {
 			return m->name() == machine->name();
 		});
